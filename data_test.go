@@ -146,7 +146,7 @@ func Test_SerializeToDynamoDB(t *testing.T) {
 			IsDev: false,
 		}
 
-		result, err := SerializeToDynamoDB(u)
+		result, err := serializeToDynamoDB(u)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
@@ -164,7 +164,7 @@ func Test_DeserializeFromDynamoDB(t *testing.T) {
 			"is_dev": &types.AttributeValueMemberBOOL{Value: false},
 		}
 
-		result, err := DeserializeFromDynamoDB[Users](dynamoData)
+		result, err := deserializeFromDynamoDB[Users](dynamoData)
 
 		assert.NoError(t, err)
 		assert.Equal(t, "leedonggyu", result.Name)
@@ -176,42 +176,42 @@ func Test_DeserializeFromDynamoDB(t *testing.T) {
 func Test_ConvertFunctions(t *testing.T) {
 	t.Run("문자열 변환", func(t *testing.T) {
 		av := &types.AttributeValueMemberS{Value: "test"}
-		result, err := ConvertToString(av)
+		result, err := convertToString(av)
 		assert.NoError(t, err)
 		assert.Equal(t, "test", result)
 	})
 
 	t.Run("정수 변환", func(t *testing.T) {
 		av := &types.AttributeValueMemberN{Value: "123"}
-		result, err := ConvertToInt(av)
+		result, err := convertToInt(av)
 		assert.NoError(t, err)
 		assert.Equal(t, 123, result)
 	})
 
 	t.Run("실수 변환", func(t *testing.T) {
 		av := &types.AttributeValueMemberN{Value: "123.45"}
-		result, err := ConvertToFloat64(av)
+		result, err := convertToFloat64(av)
 		assert.NoError(t, err)
 		assert.Equal(t, 123.45, result)
 	})
 
 	t.Run("불린 변환", func(t *testing.T) {
 		av := &types.AttributeValueMemberBOOL{Value: true}
-		result, err := ConvertToBool(av)
+		result, err := convertToBool(av)
 		assert.NoError(t, err)
 		assert.Equal(t, true, result)
 	})
 
 	t.Run("문자열 슬라이스 변환", func(t *testing.T) {
 		av := &types.AttributeValueMemberSS{Value: []string{"a", "b", "c"}}
-		result, err := ConvertToStringSlice(av)
+		result, err := convertToStringSlice(av)
 		assert.NoError(t, err)
 		assert.Equal(t, []string{"a", "b", "c"}, result)
 	})
 
 	t.Run("정수 슬라이스 변환", func(t *testing.T) {
 		av := &types.AttributeValueMemberNS{Value: []string{"1", "2", "3"}}
-		result, err := ConvertToIntSlice(av)
+		result, err := convertToIntSlice(av)
 		assert.NoError(t, err)
 		assert.Equal(t, []int{1, 2, 3}, result)
 	})

@@ -32,10 +32,6 @@ func UpdatePartial(tableName, pkName, pkValue string, updates map[string]any) er
 	}
 	updateExpression = updateExpression[:len(updateExpression)-2]
 
-	fmt.Println("UpdateExpression:", updateExpression)
-	fmt.Println("ExpressionAttributeNames:", expressionAttributeNames)
-	fmt.Println("ExpressionAttributeValues:", expressionAttributeValues)
-
 	_, err := orm.db.UpdateItem(context.Background(), &dynamodb.UpdateItemInput{
 		TableName: &tableName,
 		Key: map[string]types.AttributeValue{

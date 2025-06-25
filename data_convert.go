@@ -276,7 +276,7 @@ func serialize(data map[string]any) map[string]types.AttributeValue {
 }
 
 // 편의 함수들
-func SerializeToDynamoDB[T any](data T) (map[string]types.AttributeValue, error) {
+func serializeToDynamoDB[T any](data T) (map[string]types.AttributeValue, error) {
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal struct: %w", err)
@@ -291,12 +291,12 @@ func SerializeToDynamoDB[T any](data T) (map[string]types.AttributeValue, error)
 	return serialize(mapData), nil
 }
 
-func DeserializeFromDynamoDB[T any](v map[string]types.AttributeValue) (T, error) {
+func deserializeFromDynamoDB[T any](v map[string]types.AttributeValue) (T, error) {
 	return deserialize[T](v)
 }
 
 // 타입별 변환 헬퍼 함수들
-func ConvertToString(av types.AttributeValue) (string, error) {
+func convertToString(av types.AttributeValue) (string, error) {
 	switch v := av.(type) {
 	case *types.AttributeValueMemberS:
 		return v.Value, nil
@@ -309,7 +309,7 @@ func ConvertToString(av types.AttributeValue) (string, error) {
 	}
 }
 
-func ConvertToInt(av types.AttributeValue) (int, error) {
+func convertToInt(av types.AttributeValue) (int, error) {
 	switch v := av.(type) {
 	case *types.AttributeValueMemberS:
 		return strconv.Atoi(v.Value)
@@ -320,7 +320,7 @@ func ConvertToInt(av types.AttributeValue) (int, error) {
 	}
 }
 
-func ConvertToFloat64(av types.AttributeValue) (float64, error) {
+func convertToFloat64(av types.AttributeValue) (float64, error) {
 	switch v := av.(type) {
 	case *types.AttributeValueMemberS:
 		return strconv.ParseFloat(v.Value, 64)
@@ -331,7 +331,7 @@ func ConvertToFloat64(av types.AttributeValue) (float64, error) {
 	}
 }
 
-func ConvertToBool(av types.AttributeValue) (bool, error) {
+func convertToBool(av types.AttributeValue) (bool, error) {
 	switch v := av.(type) {
 	case *types.AttributeValueMemberBOOL:
 		return v.Value, nil
@@ -342,14 +342,14 @@ func ConvertToBool(av types.AttributeValue) (bool, error) {
 	}
 }
 
-func ConvertToStringSlice(av types.AttributeValue) ([]string, error) {
+func convertToStringSlice(av types.AttributeValue) ([]string, error) {
 	switch v := av.(type) {
 	case *types.AttributeValueMemberSS:
 		return v.Value, nil
 	case *types.AttributeValueMemberL:
 		result := make([]string, len(v.Value))
 		for i, val := range v.Value {
-			if str, err := ConvertToString(val); err == nil {
+			if str, err := convertToString(val); err == nil {
 				result[i] = str
 			}
 		}
@@ -359,7 +359,7 @@ func ConvertToStringSlice(av types.AttributeValue) ([]string, error) {
 	}
 }
 
-func ConvertToIntSlice(av types.AttributeValue) ([]int, error) {
+func convertToIntSlice(av types.AttributeValue) ([]int, error) {
 	switch v := av.(type) {
 	case *types.AttributeValueMemberNS:
 		result := make([]int, len(v.Value))
@@ -372,7 +372,7 @@ func ConvertToIntSlice(av types.AttributeValue) ([]int, error) {
 	case *types.AttributeValueMemberL:
 		result := make([]int, len(v.Value))
 		for i, val := range v.Value {
-			if num, err := ConvertToInt(val); err == nil {
+			if num, err := convertToInt(val); err == nil {
 				result[i] = num
 			}
 		}

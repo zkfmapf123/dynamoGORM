@@ -39,7 +39,7 @@ func Insert(params TableParmas, data map[string]any) error {
 		fmt.Println("테이블 생성 중... ")
 	}
 
-	item, err := SerializeToDynamoDB(data)
+	item, err := serializeToDynamoDB(data)
 	if err != nil {
 		return err
 	}
