@@ -17,43 +17,37 @@ func deserialize[T any](v map[string]types.AttributeValue) (T, error) {
 		return result, fmt.Errorf("input is nil")
 	}
 
-	// 리플렉션을 사용하여 T 타입의 정보 얻기
 	resultType := reflect.TypeOf(result)
 	resultValue := reflect.ValueOf(&result).Elem()
 
-	// T가 구조체인 경우
 	if resultType.Kind() == reflect.Struct {
 		for i := 0; i < resultType.NumField(); i++ {
 			field := resultType.Field(i)
 			fieldValue := resultValue.Field(i)
 
-			// 비공개 필드는 건너뛰기
 			if !fieldValue.CanSet() {
 				continue
 			}
 
-			// JSON 태그 확인
 			jsonTag := field.Tag.Get("json")
 			if jsonTag == "" {
 				jsonTag = field.Name
 			}
 
-			// DynamoDB에서 해당 키 찾기
 			if attrValue, exists := v[jsonTag]; exists {
-				// 필드 타입에 맞게 변환
+
 				convertedValue, err := convertToFieldType(attrValue, field.Type)
 				if err != nil {
 					return result, fmt.Errorf("failed to convert field %s: %w", field.Name, err)
 				}
 
-				// 변환된 값을 필드에 설정
 				if convertedValue != nil {
-					// 타입 안전성 검사
+
 					convertedReflectValue := reflect.ValueOf(convertedValue)
 					if convertedReflectValue.Type().AssignableTo(field.Type) {
 						fieldValue.Set(convertedReflectValue)
 					} else {
-						// 타입 변환이 필요한 경우
+
 						if fieldValue.CanAddr() {
 							fieldValue.Set(convertedReflectValue.Convert(field.Type))
 						}
@@ -62,7 +56,6 @@ func deserialize[T any](v map[string]types.AttributeValue) (T, error) {
 			}
 		}
 	} else {
-		// 구조체가 아닌 경우 JSON 변환 사용
 		return deserializeViaJSON[T](v)
 	}
 
@@ -133,12 +126,10 @@ func convertToFieldType(av types.AttributeValue, targetType reflect.Type) (any, 
 		return numbers, nil
 
 	case *types.AttributeValueMemberM:
-		// 중첩된 맵 처리
 		nestedMap := deserializeToMap(v.Value)
 		return nestedMap, nil
 
 	case *types.AttributeValueMemberL:
-		// 리스트 처리
 		list := make([]any, len(v.Value))
 		for i, val := range v.Value {
 			list[i] = deserializeSingleValueToAny(val)
@@ -154,16 +145,13 @@ func convertToFieldType(av types.AttributeValue, targetType reflect.Type) (any, 
 func deserializeViaJSON[T any](v map[string]types.AttributeValue) (T, error) {
 	var result T
 
-	// map[string]any로 변환
 	intermediate := deserializeToMap(v)
 
-	// JSON으로 변환
 	jsonBytes, err := json.Marshal(intermediate)
 	if err != nil {
 		return result, fmt.Errorf("failed to marshal to JSON: %w", err)
 	}
 
-	// JSON을 T 타입으로 언마샬링
 	err = json.Unmarshal(jsonBytes, &result)
 	if err != nil {
 		return result, fmt.Errorf("failed to unmarshal to type %T: %w", result, err)
@@ -295,7 +283,6 @@ func deserializeFromDynamoDB[T any](v map[string]types.AttributeValue) (T, error
 	return deserialize[T](v)
 }
 
-// 타입별 변환 헬퍼 함수들
 func convertToString(av types.AttributeValue) (string, error) {
 	switch v := av.(type) {
 	case *types.AttributeValueMemberS:
