@@ -21,30 +21,38 @@ type TableParmas struct {
 	billingMode bool   // true : on-demain , false : provisioned
 }
 
-func (orm *DynamoGORMParmas) Insert(params TableParmas, data map[string]any) error {
+func Insert(params TableParmas, data map[string]any) error {
+	orm := dynamoGORM(context.Background())
 
 	attempt := 1
 	for attempt = 1; attempt < RETRY_COUNT; attempt++ {
 
-		isOk, _ := orm.isExistTableName(params.tableName)
-		if isOk {
+		if !isExistTableName(params.tableName) {
+			createTable(&orm, params)
+		}
+
+		if isActiveDynamoTable(params.tableName) {
 			break
 		}
 
-		createTable(orm, params)
-		time.Sleep(time.Second * 1)
+		time.Sleep(time.Second * 2)
 		fmt.Println("테이블 생성 중... ")
 	}
 
-	_, err := orm.db.PutItem(context.Background(), &dynamodb.PutItemInput{
+	item, err := SerializeToDynamoDB(data)
+	if err != nil {
+		return err
+	}
+
+	_, err = orm.db.PutItem(context.Background(), &dynamodb.PutItemInput{
 		TableName: &params.tableName,
-		Item:      convertToAttributeValueMap(data),
+		Item:      item,
 	})
 
 	return err
 }
 
-func createTable(orm *DynamoGORMParmas, params TableParmas) error {
+func createTable(orm *dynamoGORMParmas, params TableParmas) error {
 
 	attrDefinition := []types.AttributeDefinition{
 		{
@@ -61,7 +69,6 @@ func createTable(orm *DynamoGORMParmas, params TableParmas) error {
 	}
 
 	// TOBE. 정렬 키는 추후 구성 예정
-
 	_, err := orm.db.CreateTable(context.Background(), &dynamodb.CreateTableInput{
 		TableName:            wrapString(params.tableName),
 		AttributeDefinitions: attrDefinition,
@@ -70,4 +77,20 @@ func createTable(orm *DynamoGORMParmas, params TableParmas) error {
 	})
 
 	return err
+}
+
+func isActiveDynamoTable(tableName string) bool {
+	ctx := context.Background()
+	orm := dynamoGORM(ctx)
+
+	res, err := orm.db.DescribeTable(ctx, &dynamodb.DescribeTableInput{
+		TableName: wrapString(tableName),
+	})
+
+	if err != nil {
+		// log.Println(err)
+		return false
+	}
+
+	return res.Table.TableStatus == types.TableStatusActive
 }

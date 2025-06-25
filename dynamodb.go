@@ -2,8 +2,6 @@ package dynamodbgo
 
 import (
 	"context"
-	"fmt"
-	"strconv"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -11,11 +9,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-type DynamoGORMParmas struct {
+type dynamoGORMParmas struct {
 	db dynamodb.Client
 }
 
-func DynamoGORM(c context.Context) DynamoGORMParmas {
+func dynamoGORM(c context.Context) dynamoGORMParmas {
 
 	client, err := config.LoadDefaultConfig(c)
 	if err != nil {
@@ -23,12 +21,13 @@ func DynamoGORM(c context.Context) DynamoGORMParmas {
 	}
 
 	db := dynamodb.NewFromConfig(client)
-	return DynamoGORMParmas{
+	return dynamoGORMParmas{
 		db: *db,
 	}
 }
 
-func (orm *DynamoGORMParmas) isExistTableName(tableName string) (bool, error) {
+func isExistTableName(tableName string) bool {
+	orm := dynamoGORM(context.Background())
 
 	_, err := orm.db.DescribeTable(context.Background(), &dynamodb.DescribeTableInput{
 		TableName: wrapString(tableName),
@@ -36,10 +35,11 @@ func (orm *DynamoGORMParmas) isExistTableName(tableName string) (bool, error) {
 
 	// not found
 	if err != nil {
-		return false, err
+		// log.Println(err)
+		return false
 	}
 
-	return true, nil
+	return true
 }
 
 func wrapString(v string) *string {
@@ -61,57 +61,4 @@ func getBillingMode(v bool) types.BillingMode {
 
 	return types.BillingModeProvisioned
 
-}
-
-func convertToAttributeValueMap(data map[string]any) map[string]types.AttributeValue {
-	item := make(map[string]types.AttributeValue)
-
-	for key, value := range data {
-		switch v := value.(type) {
-		case string:
-			item[key] = &types.AttributeValueMemberS{Value: v}
-		case int:
-			item[key] = &types.AttributeValueMemberN{Value: strconv.Itoa(v)}
-		case int64:
-			item[key] = &types.AttributeValueMemberN{Value: strconv.FormatInt(v, 10)}
-		case float64:
-			item[key] = &types.AttributeValueMemberN{Value: strconv.FormatFloat(v, 'f', -1, 64)}
-		case bool:
-			item[key] = &types.AttributeValueMemberBOOL{Value: v}
-		case []byte:
-			item[key] = &types.AttributeValueMemberB{Value: v}
-		case []string:
-			item[key] = &types.AttributeValueMemberSS{Value: v}
-		case []int:
-			numbers := make([]string, len(v))
-			for i, num := range v {
-				numbers[i] = strconv.Itoa(num)
-			}
-			item[key] = &types.AttributeValueMemberNS{Value: numbers}
-		case map[string]any:
-			nestedMap := convertToAttributeValueMap(v)
-			item[key] = &types.AttributeValueMemberM{Value: nestedMap}
-		case []any:
-			// any 슬라이스 처리
-			list := make([]types.AttributeValue, len(v))
-			for i, val := range v {
-				switch listVal := val.(type) {
-				case string:
-					list[i] = &types.AttributeValueMemberS{Value: listVal}
-				case int:
-					list[i] = &types.AttributeValueMemberN{Value: strconv.Itoa(listVal)}
-				case bool:
-					list[i] = &types.AttributeValueMemberBOOL{Value: listVal}
-				default:
-					list[i] = &types.AttributeValueMemberS{Value: fmt.Sprintf("%v", val)}
-				}
-			}
-			item[key] = &types.AttributeValueMemberL{Value: list}
-		default:
-			// 지원하지 않는 타입은 문자열로 변환
-			item[key] = &types.AttributeValueMemberS{Value: fmt.Sprintf("%v", value)}
-		}
-	}
-
-	return item
 }
