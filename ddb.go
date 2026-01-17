@@ -9,6 +9,12 @@ import (
 )
 
 const (
+	INFO  = "info"
+	DEBUG = "debug"
+	ERROR = "error"
+)
+
+const (
 	PrimaryKey = "PK"
 	SortKey    = "SK"
 )
@@ -28,23 +34,17 @@ func (c *DDBClient) AddTable(tableName string, table DDBTableParams) *DDBClient 
 
 func (c *DDBClient) Start(isCreateTable bool) error {
 
-	InfoLog(CustomLogParmas{
-		ph: "DDBClient.Start",
-		msg: map[string]any{
-			"totalTableCount ": len(c.tables),
-			"isCreate":         isCreateTable,
-		},
+	c.trace(INFO, "DDBClient.Start", map[string]any{
+		"totalTableCount ": len(c.tables),
+		"isCreate":         isCreateTable,
 	})
 
 	for tableName, params := range c.tables {
 
 		if params.IsCreate {
 
-			InfoLog(CustomLogParmas{
-				ph: "DDBClient.Start.CreateTable",
-				msg: map[string]any{
-					"tableName": tableName,
-				},
+			c.trace(INFO, "DDBClient.Start.CreateTable.GetPKandSK", map[string]any{
+				"tableName": tableName,
 			})
 
 			keySchema, keyAttribute := getPKandSK(params)
@@ -71,27 +71,46 @@ func (c *DDBClient) Start(isCreateTable bool) error {
 			_, err := c.client.CreateTable(context.Background(), createTableInput)
 
 			if err != nil {
-				ErrorLog(CustomLogParmas{
-					ph: "DDBClient.Start.CreateTable.Error",
-					msg: map[string]any{
-						"tableName": tableName,
-						"error":     err,
-					},
+				c.trace(ERROR, "DDBClient.Start.CreateTable.Error", map[string]any{
+					"tableName": tableName,
+					"error":     err,
 				})
 
 				return err
 			}
 
-			InfoLog(CustomLogParmas{
-				ph: "DDBClient.Start.CreateTable.Success",
-				msg: map[string]any{
-					"tableName": tableName,
-				},
+			c.trace(INFO, "DDBClient.Start.CreateTable.Success", map[string]any{
+				"tableName": tableName,
 			})
 		}
 	}
 
 	return nil
+}
+
+func (c DDBClient) trace(level, ph string, item map[string]any) {
+
+	switch level {
+
+	case INFO:
+		InfoLog(CustomLogParmas{
+			ph:  ph,
+			msg: item,
+		})
+
+	case DEBUG:
+		DebugLog(CustomLogParmas{
+			ph:  ph,
+			msg: item,
+		})
+
+	default:
+		ErrorLog(CustomLogParmas{
+			ph:  ph,
+			msg: item,
+		})
+	}
+
 }
 
 func getPKandSK(params DDBTableParams) ([]types.KeySchemaElement, []types.AttributeDefinition) {

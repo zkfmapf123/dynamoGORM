@@ -33,7 +33,7 @@ func ErrorLog(log CustomLogParmas) {
 
 func sendLog(level string, log CustomLogParmas, printColor func(format string, a ...any)) {
 
-	printColor("[%s] %s\n", level, log.ph)
+	printColor("[%s] %s\t", level, log.ph)
 
 	// msg 안의 error 타입을 문자열로 변환
 	for k, v := range log.msg {
@@ -44,6 +44,6 @@ func sendLog(level string, log CustomLogParmas, printColor func(format string, a
 
 	_, jsonStr, _ := dg.JsonStringify(log.msg)
 
-	printColor("[%s] : %s\n", "message", jsonStr)
-	printColor("\t %s\n", time.Now().Format(time.RFC3339))
+	printColor("[%s] : %s\t", "message", jsonStr)
+	printColor("%s\n", time.Now().Format(time.RFC3339))
 }
