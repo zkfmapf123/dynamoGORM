@@ -5,6 +5,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
+// DDB
+
 type DDBBillingMode struct {
 	isOnDemand    bool
 	isProvisioned struct {
@@ -13,23 +15,26 @@ type DDBBillingMode struct {
 	}
 }
 
-type DDBAttributes struct {
-	Name          string
-	AttributeType types.ScalarAttributeType
-}
+type DDBTableParams struct {
+	IsCreate bool // Table 생성 유무
 
-type TableParms struct {
-	Pk              string // primary key
-	PkAttributeType types.ScalarAttributeType
+	IsPK            bool                      // primary key
+	PkAttributeType types.ScalarAttributeType // Hash
 
-	Sk              string // sort key
+	IsSK            bool // sort key
 	SkAttributeType types.ScalarAttributeType
 
-	IsCreate    bool
 	BillingMode DDBBillingMode
 }
 
 type DDBClient struct {
 	client *dynamodb.Client
-	tables map[string]TableParms
+	tables map[string]DDBTableParams
+}
+
+// Log
+type CustomLogParmas struct {
+	ph  string // placeholder
+	msg map[string]any
+	err error
 }

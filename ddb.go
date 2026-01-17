@@ -8,75 +8,127 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
+const (
+	PrimaryKey = "PK"
+	SortKey    = "SK"
+)
+
 func NewDDB(dynamoDBClient *dynamodb.Client) *DDBClient {
 	return &DDBClient{
 		client: dynamoDBClient,
+		tables: map[string]DDBTableParams{},
 	}
 }
 
-func (c *DDBClient) AddTable(tableName string, pk, sk DDBAttributes, isCreate bool, billingMode DDBBillingMode) DDBClient {
+func (c *DDBClient) AddTable(tableName string, table DDBTableParams) *DDBClient {
 
-	c.tables[tableName] = TableParms{
-		Pk:              pk.Name,
-		PkAttributeType: pk.AttributeType,
-
-		Sk:              sk.Name,
-		SkAttributeType: sk.AttributeType,
-
-		IsCreate:    isCreate,
-		BillingMode: billingMode,
-	}
-
-	return *c
+	c.tables[tableName] = table
+	return c
 }
 
-func (c *DDBClient) Start() error {
+func (c *DDBClient) Start(isCreateTable bool) error {
 
-	for tableName, parmas := range c.tables {
+	InfoLog(CustomLogParmas{
+		ph: "DDBClient.Start",
+		msg: map[string]any{
+			"total Table Count ": len(c.tables),
+			"isCreate":           isCreateTable,
+		},
+	})
 
-		if parmas.IsCreate {
-			_, err := c.client.CreateTable(context.Background(), &dynamodb.CreateTableInput{
-				TableName: aws.String(tableName),
+	for tableName, params := range c.tables {
 
-				// KeySchema
-				KeySchema: []types.KeySchemaElement{
-					{
-						AttributeName: aws.String(parmas.Pk),
-						KeyType:       types.KeyTypeHash,
-					},
-					{
-						AttributeName: aws.String(parmas.Sk),
-						KeyType:       types.KeyTypeRange,
-					},
-				},
+		if params.IsCreate {
 
-				// AttributeDefinitions
-				AttributeDefinitions: []types.AttributeDefinition{
-					{
-						AttributeName: aws.String(parmas.Pk),
-						AttributeType: types.ScalarAttributeType(parmas.PkAttributeType),
-					},
-					{
-						AttributeName: aws.String(parmas.Sk),
-						AttributeType: types.ScalarAttributeType(parmas.SkAttributeType),
-					},
-				},
-
-				// BillingMode
-				BillingMode: types.BillingMode(getBillingMode(parmas.BillingMode)),
-				ProvisionedThroughput: &types.ProvisionedThroughput{
-					ReadCapacityUnits:  aws.Int64(int64(parmas.BillingMode.isProvisioned.ReadCapacityUnits)),
-					WriteCapacityUnits: aws.Int64(int64(parmas.BillingMode.isProvisioned.WriteCapacityUnits)),
+			InfoLog(CustomLogParmas{
+				ph: "DDBClient.Start.CreateTable",
+				msg: map[string]any{
+					"tableName": tableName,
 				},
 			})
 
+			keySchema, keyAttribute := getPKandSK(params)
+
+			createTableInput := &dynamodb.CreateTableInput{
+				TableName:            aws.String(tableName),
+				KeySchema:            keySchema,
+				AttributeDefinitions: keyAttribute,
+			}
+
+			// ondemand
+			if params.BillingMode.isOnDemand {
+				createTableInput.BillingMode = getBillingMode(params.BillingMode)
+			}
+
+			if !params.BillingMode.isOnDemand {
+				createTableInput.BillingMode = getBillingMode(params.BillingMode)
+				createTableInput.ProvisionedThroughput = &types.ProvisionedThroughput{
+					ReadCapacityUnits:  aws.Int64(int64(params.BillingMode.isProvisioned.ReadCapacityUnits)),
+					WriteCapacityUnits: aws.Int64(int64(params.BillingMode.isProvisioned.WriteCapacityUnits)),
+				}
+			}
+
+			_, err := c.client.CreateTable(context.Background(), createTableInput)
+
 			if err != nil {
+				ErrorLog(CustomLogParmas{
+					ph: "DDBClient.Start.CreateTable.Error",
+					msg: map[string]any{
+						"tableName": tableName,
+						"error":     err,
+					},
+				})
+
 				return err
 			}
+
+			InfoLog(CustomLogParmas{
+				ph: "DDBClient.Start.CreateTable.Success",
+				msg: map[string]any{
+					"tableName": tableName,
+				},
+			})
 		}
 	}
 
 	return nil
+}
+
+func getPKandSK(params DDBTableParams) ([]types.KeySchemaElement, []types.AttributeDefinition) {
+	keySchema := []types.KeySchemaElement{}
+	keyAttribute := []types.AttributeDefinition{}
+
+	// use pk
+	if params.IsPK {
+
+		keySchema = append(keySchema, types.KeySchemaElement{
+			AttributeName: aws.String(PrimaryKey),
+			KeyType:       types.KeyTypeHash,
+		})
+
+		keyAttribute = append(keyAttribute, types.AttributeDefinition{
+			AttributeName: aws.String(PrimaryKey),
+			AttributeType: params.PkAttributeType,
+		})
+
+	}
+
+	// use sk
+	if params.IsSK {
+
+		keySchema = append(keySchema, types.KeySchemaElement{
+			AttributeName: aws.String(SortKey),
+			KeyType:       types.KeyTypeRange,
+		})
+
+		keyAttribute = append(keyAttribute, types.AttributeDefinition{
+			AttributeName: aws.String(SortKey),
+			AttributeType: params.SkAttributeType,
+		})
+
+	}
+
+	return keySchema, keyAttribute
 }
 
 func getBillingMode(billingMode DDBBillingMode) types.BillingMode {
