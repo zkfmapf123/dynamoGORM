@@ -7,6 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.32.7
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.53.6
 	github.com/gookit/color v1.6.0
+	github.com/zkfmapf123/donggo v0.0.10
 )
 
 require (

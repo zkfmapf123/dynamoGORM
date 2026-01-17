@@ -31,8 +31,8 @@ func (c *DDBClient) Start(isCreateTable bool) error {
 	InfoLog(CustomLogParmas{
 		ph: "DDBClient.Start",
 		msg: map[string]any{
-			"total Table Count ": len(c.tables),
-			"isCreate":           isCreateTable,
+			"totalTableCount ": len(c.tables),
+			"isCreate":         isCreateTable,
 		},
 	})
 

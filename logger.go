@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/gookit/color"
+	dg "github.com/zkfmapf123/donggo"
 )
 
 var (
@@ -34,13 +35,15 @@ func sendLog(level string, log CustomLogParmas, printColor func(format string, a
 
 	printColor("[%s] %s\n", level, log.ph)
 
+	// msg 안의 error 타입을 문자열로 변환
 	for k, v := range log.msg {
-		printColor("\t %s: %v  ", k, v)
+		if err, ok := v.(error); ok {
+			log.msg[k] = err.Error()
+		}
 	}
 
-	if log.err != nil {
-		printColor("\t %s\n", log.err)
-	}
+	_, jsonStr, _ := dg.JsonStringify(log.msg)
 
+	printColor("[%s] : %s\n", "message", jsonStr)
 	printColor("\t %s\n", time.Now().Format(time.RFC3339))
 }

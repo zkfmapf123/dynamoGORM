@@ -36,5 +36,4 @@ type DDBClient struct {
 type CustomLogParmas struct {
 	ph  string // placeholder
 	msg map[string]any
-	err error
 }
