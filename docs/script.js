@@ -14,8 +14,10 @@ import (
 )
 
 func main() {
+    ctx := context.Background()
+
     // AWS 설정 로드
-    cfg, _ := config.LoadDefaultConfig(context.Background())
+    cfg, _ := config.LoadDefaultConfig(ctx)
     dynamoClient := dynamodb.NewFromConfig(cfg)
 
     // GDRM 클라이언트 생성
@@ -28,10 +30,13 @@ func main() {
         PkAttributeType: types.ScalarAttributeTypeS,
         IsSK:            true,
         SkAttributeType: types.ScalarAttributeTypeS,
+        BillingMode: gdrm.DDBBillingMode{
+            IsOnDemand: true,
+        },
     })
 
     // 테이블 생성 시작
-    client.Start(true)
+    client.Start(ctx, true)
 }`,
 
     insert: `type User struct {
@@ -41,8 +46,10 @@ func main() {
     Age  int    \`dynamodbav:"Age"\`
 }
 
+ctx := context.Background()
+
 // 단건 삽입
-err := client.Insert("my_table", User{
+err := client.Insert(ctx, "my_table", User{
     PK:   "USER#123",
     SK:   "#PROFILE",
     Name: "tom",
@@ -58,8 +65,10 @@ users := []any{
 
 err = client.InsertBatch("my_table", users)`,
 
-    select: `// 단건 조회
-item, err := client.FindByKey("my_table", "USER#123", "#PROFILE")
+    select: `ctx := context.Background()
+
+// 단건 조회
+item, err := client.FindByKey(ctx, "my_table", "USER#123", "#PROFILE")
 if err != nil {
     log.Fatal(err)
 }
@@ -67,8 +76,6 @@ if err != nil {
 // Expression을 사용한 조회
 items, err := client.FindByKeyUseExpression(
     "my_table",
-    "TEAM#DEV",
-    "",
     100,  // limit
     gdrm.RangeParams{
         KeyConditionExpression: "PK = :pk",
@@ -81,8 +88,6 @@ items, err := client.FindByKeyUseExpression(
 // begins_with 사용
 items, err = client.FindByKeyUseExpression(
     "my_table",
-    "USER#123",
-    "ORDER#",
     50,
     gdrm.RangeParams{
         KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
@@ -93,8 +98,10 @@ items, err = client.FindByKeyUseExpression(
     },
 )`,
 
-    marshal: `// 단건 결과 변환
-item, _ := client.FindByKey("my_table", "USER#123", "#PROFILE")
+    marshal: `ctx := context.Background()
+
+// 단건 결과 변환
+item, _ := client.FindByKey(ctx, "my_table", "USER#123", "#PROFILE")
 
 // 제네릭을 사용한 타입 변환
 user := gdrm.MarshalMap[User](item)
@@ -293,4 +300,3 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add transition to code display
     codeDisplay.style.transition = 'opacity 0.15s ease';
 });
-

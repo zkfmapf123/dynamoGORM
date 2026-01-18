@@ -136,7 +136,7 @@ client := gdrm.NewDDB(dynamoClient)</code></pre>
     IsSK:            true,
     SkAttributeType: types.ScalarAttributeTypeS,
     BillingMode: gdrm.DDBBillingMode{
-        // OnDemand 또는 Provisioned 설정
+        IsOnDemand: true,
     },
 })</code></pre>
                         </article>
@@ -167,7 +167,9 @@ if err != nil {
     Age  int    `dynamodbav:"Age"`
 }
 
-err := client.Insert("my_table", User{
+ctx := context.Background()
+
+err := client.Insert(ctx, "my_table", User{
     PK:   "USER#123",
     SK:   "#PROFILE",
     Name: "tom",
@@ -195,7 +197,9 @@ err := client.InsertBatch("my_table", users)</code></pre>
                         <article class="func-doc" id="FindByKey">
                             <h4>FindByKey</h4>
                             <p class="func-desc">PK와 SK로 단건 아이템을 조회합니다.</p>
-                            <pre class="code-block"><code>item, err := client.FindByKey("my_table", "USER#123", "#PROFILE")
+                            <pre class="code-block"><code>ctx := context.Background()
+
+item, err := client.FindByKey(ctx, "my_table", "USER#123", "#PROFILE")
 if err != nil {
     log.Fatal(err)
 }
@@ -209,8 +213,6 @@ user := gdrm.MarshalMap[User](item)</code></pre>
                             <p class="func-desc">Expression을 사용하여 조건부 조회를 수행합니다.</p>
                             <pre class="code-block"><code>items, err := client.FindByKeyUseExpression(
     "my_table",
-    "TEAM#DEV",
-    "",
     100,  // limit
     gdrm.RangeParams{
         KeyConditionExpression: "PK = :pk",
@@ -223,8 +225,6 @@ user := gdrm.MarshalMap[User](item)</code></pre>
 // begins_with 사용 예시
 items, err := client.FindByKeyUseExpression(
     "my_table",
-    "USER#123",
-    "ORDER#",
     50,
     gdrm.RangeParams{
         KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
@@ -244,7 +244,9 @@ items, err := client.FindByKeyUseExpression(
                         <article class="func-doc" id="MarshalMap">
                             <h4>MarshalMap[T any]</h4>
                             <p class="func-desc">DynamoDB 결과를 지정한 타입으로 변환합니다.</p>
-                            <pre class="code-block"><code>item, _ := client.FindByKey("my_table", "USER#123", "#PROFILE")
+                            <pre class="code-block"><code>ctx := context.Background()
+
+item, _ := client.FindByKey(ctx, "my_table", "USER#123", "#PROFILE")
 
 // 제네릭을 사용한 타입 변환
 user := gdrm.MarshalMap[User](item)
