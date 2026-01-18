@@ -10,7 +10,7 @@ import (
     "github.com/aws/aws-sdk-go-v2/config"
     "github.com/aws/aws-sdk-go-v2/service/dynamodb"
     "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-    goddb "github.com/zkfmapf123/go-ddb"
+    gdrm "github.com/zkfmapf123/gdrm"
 )
 
 func main() {
@@ -18,11 +18,11 @@ func main() {
     cfg, _ := config.LoadDefaultConfig(context.Background())
     dynamoClient := dynamodb.NewFromConfig(cfg)
 
-    // go-ddb 클라이언트 생성
-    client := goddb.NewDDB(dynamoClient)
+    // GDRM 클라이언트 생성
+    client := gdrm.NewDDB(dynamoClient)
 
     // 테이블 설정 추가
-    client.AddTable("my_table", goddb.DDBTableParams{
+    client.AddTable("my_table", gdrm.DDBTableParams{
         IsCreate:        true,
         IsPK:            true,
         PkAttributeType: types.ScalarAttributeTypeS,
@@ -70,7 +70,7 @@ items, err := client.FindByKeyUseExpression(
     "TEAM#DEV",
     "",
     100,  // limit
-    goddb.RangeParams{
+    gdrm.RangeParams{
         KeyConditionExpression: "PK = :pk",
         ExpressionAttributeValues: map[string]types.AttributeValue{
             ":pk": &types.AttributeValueMemberS{Value: "TEAM#DEV"},
@@ -84,7 +84,7 @@ items, err = client.FindByKeyUseExpression(
     "USER#123",
     "ORDER#",
     50,
-    goddb.RangeParams{
+    gdrm.RangeParams{
         KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
         ExpressionAttributeValues: map[string]types.AttributeValue{
             ":pk": &types.AttributeValueMemberS{Value: "USER#123"},
@@ -97,7 +97,7 @@ items, err = client.FindByKeyUseExpression(
 item, _ := client.FindByKey("my_table", "USER#123", "#PROFILE")
 
 // 제네릭을 사용한 타입 변환
-user := goddb.MarshalMap[User](item)
+user := gdrm.MarshalMap[User](item)
 
 fmt.Println(user.Name)  // "tom"
 fmt.Println(user.Age)   // 32
@@ -105,7 +105,7 @@ fmt.Println(user.Age)   // 32
 // 복수 결과 변환
 items, _ := client.FindByKeyUseExpression(...)
 
-users := goddb.MarshalMaps[User](items)
+users := gdrm.MarshalMaps[User](items)
 
 for _, u := range users {
     fmt.Printf("%s: %d세\\n", u.Name, u.Age)

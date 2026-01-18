@@ -42,7 +42,7 @@
     <section class="playground" id="playground">
         <div class="container">
             <h2 class="section-title">코드 플레이그라운드</h2>
-            <p class="section-desc">go-ddb의 사용 예제를 확인하세요.</p>
+            <p class="section-desc">GDRM의 사용 예제를 확인하세요.</p>
             
             <div class="playground-container">
                 <div class="playground-tabs">
@@ -68,7 +68,7 @@
     <section class="docs" id="docs">
         <div class="container">
             <h2 class="section-title">문서</h2>
-            <p class="section-desc">go-ddb의 모든 함수와 사용법을 확인하세요.</p>
+            <p class="section-desc">GDRM의 모든 함수와 사용법을 확인하세요.</p>
 
             <div class="docs-layout">
                 <aside class="docs-sidebar">
@@ -117,25 +117,25 @@
                             <pre class="code-block"><code>import (
     "github.com/aws/aws-sdk-go-v2/config"
     "github.com/aws/aws-sdk-go-v2/service/dynamodb"
-    goddb "github.com/zkfmapf123/go-ddb"
+    gdrm "github.com/zkfmapf123/gdrm"
 )
 
 cfg, _ := config.LoadDefaultConfig(context.Background())
 dynamoClient := dynamodb.NewFromConfig(cfg)
 
-client := goddb.NewDDB(dynamoClient)</code></pre>
+client := gdrm.NewDDB(dynamoClient)</code></pre>
                         </article>
 
                         <article class="func-doc" id="AddTable">
                             <h4>AddTable</h4>
                             <p class="func-desc">테이블 설정을 추가합니다. 체이닝 방식을 지원합니다.</p>
-                            <pre class="code-block"><code>client.AddTable("my_table", goddb.DDBTableParams{
+                            <pre class="code-block"><code>client.AddTable("my_table", gdrm.DDBTableParams{
     IsCreate:        true,
     IsPK:            true,
     PkAttributeType: types.ScalarAttributeTypeS,
     IsSK:            true,
     SkAttributeType: types.ScalarAttributeTypeS,
-    BillingMode: goddb.DDBBillingMode{
+    BillingMode: gdrm.DDBBillingMode{
         // OnDemand 또는 Provisioned 설정
     },
 })</code></pre>
@@ -199,7 +199,7 @@ if err != nil {
 }
 
 // MarshalMap으로 변환
-user := goddb.MarshalMap[User](item)</code></pre>
+user := gdrm.MarshalMap[User](item)</code></pre>
                         </article>
 
                         <article class="func-doc" id="FindByKeyUseExpression">
@@ -210,7 +210,7 @@ user := goddb.MarshalMap[User](item)</code></pre>
     "TEAM#DEV",
     "",
     100,  // limit
-    goddb.RangeParams{
+    gdrm.RangeParams{
         KeyConditionExpression: "PK = :pk",
         ExpressionAttributeValues: map[string]types.AttributeValue{
             ":pk": &types.AttributeValueMemberS{Value: "TEAM#DEV"},
@@ -224,7 +224,7 @@ items, err := client.FindByKeyUseExpression(
     "USER#123",
     "ORDER#",
     50,
-    goddb.RangeParams{
+    gdrm.RangeParams{
         KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
         ExpressionAttributeValues: map[string]types.AttributeValue{
             ":pk": &types.AttributeValueMemberS{Value: "USER#123"},
@@ -245,7 +245,7 @@ items, err := client.FindByKeyUseExpression(
                             <pre class="code-block"><code>item, _ := client.FindByKey("my_table", "USER#123", "#PROFILE")
 
 // 제네릭을 사용한 타입 변환
-user := goddb.MarshalMap[User](item)
+user := gdrm.MarshalMap[User](item)
 
 fmt.Println(user.Name)  // "tom"
 fmt.Println(user.Age)   // 32</code></pre>
@@ -257,7 +257,7 @@ fmt.Println(user.Age)   // 32</code></pre>
                             <pre class="code-block"><code>items, _ := client.FindByKeyUseExpression(...)
 
 // 배열 결과 변환
-users := goddb.MarshalMaps[User](items)
+users := gdrm.MarshalMaps[User](items)
 
 for _, user := range users {
     fmt.Printf("%s: %d세\n", user.Name, user.Age)
@@ -278,7 +278,7 @@ for _, user := range users {
                     <div class="step-number">1</div>
                     <div class="step-content">
                         <h4>Go 모듈 설치</h4>
-                        <pre class="code-block"><code>go get github.com/zkfmapf123/go-ddb</code></pre>
+                        <pre class="code-block"><code>go get github.com/zkfmapf123/gdrm</code></pre>
                     </div>
                 </div>
                 
@@ -286,7 +286,7 @@ for _, user := range users {
                     <div class="step-number">2</div>
                     <div class="step-content">
                         <h4>코드에서 import</h4>
-                        <pre class="code-block"><code>import goddb "github.com/zkfmapf123/go-ddb"</code></pre>
+                        <pre class="code-block"><code>import gdrm "github.com/zkfmapf123/gdrm"</code></pre>
                     </div>
                 </div>
             </div>
@@ -295,9 +295,9 @@ for _, user := range users {
 
     <footer class="footer">
         <div class="container">
-            <p>© 2024 go-ddb. MIT License.</p>
+            <p>© 2024 GDRM. MIT License.</p>
             <div class="footer-links">
-                <a href="https://github.com/zkfmapf123/go-ddb" target="_blank">GitHub</a>
+                <a href="https://github.com/zkfmapf123/gdrm" target="_blank">GitHub</a>
                 <span class="divider">|</span>
                 <a href="#docs">문서</a>
             </div>

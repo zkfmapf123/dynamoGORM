@@ -1,17 +1,9 @@
 # GDRM (Go DynamoDB oRM)
 
-DynamoDB Single Table Design을 위한 Go 라이브러리
+<a href="https://github.com/zkfmapf123/gdrm"> DynamoDB Single Table Design을 위한 Go 라이브러리 </a>
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/zkfmapf123/gdrm.svg)](https://pkg.go.dev/github.com/zkfmapf123/gdrm)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-## 특징
-
-- 🚀 **심플한 API** - 직관적인 메서드로 DynamoDB 작업 수행
-- 📦 **Single Table Design** - PK/SK 기반 설계 지원
-- 🔄 **배치 처리** - 25개씩 자동 분할되는 배치 삽입
-- 🎯 **제네릭 지원** - 타입 안전한 Marshal/Unmarshal
-- 📝 **내장 로깅** - 디버깅을 위한 트레이스 로그
 
 ## 설치
 
