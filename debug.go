@@ -9,7 +9,7 @@ import (
 )
 
 // 시나리오 테스트 용
-func (c DDBClient) DropTable(tableName string) {
+func (c DDBClient) dropTable(tableName string) {
 
 	c.client.DeleteTable(context.Background(), &dynamodb.DeleteTableInput{
 		TableName: aws.String(tableName),
@@ -18,7 +18,7 @@ func (c DDBClient) DropTable(tableName string) {
 }
 
 // 시나리오 테스트 용
-func (c DDBClient) TruncateRow(tableName, pk string) {
+func (c DDBClient) truncateRow(tableName, pk string) {
 
 	c.client.DeleteItem(context.Background(), &dynamodb.DeleteItemInput{
 		TableName: aws.String(tableName),
