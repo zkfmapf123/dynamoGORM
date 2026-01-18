@@ -1,6 +1,6 @@
 # GDRM (Go DynamoDB oRM)
 
-<a href=https://zkfmapf123.github.io/gdrm/"> DynamoDB Single Table Design을 위한 Go 라이브러리 </a>
+<a href="https://zkfmapf123.github.io/gdrm/"> DynamoDB Single Table Design을 위한 Go 라이브러리 </a>
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/zkfmapf123/gdrm.svg)](https://pkg.go.dev/github.com/zkfmapf123/gdrm)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
